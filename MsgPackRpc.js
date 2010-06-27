@@ -18,17 +18,13 @@ function RpcServer(module) {
       var result = null;
 
       try {
-        var result = module[method].apply(this, params);
+        result = module[method].apply(this, params);
       } catch(e) {
+        sys.log('Exception invokingi ' + method + ': ' + e);
         error = e;
       }
 
-      var response = [];
-      response.push(RESPONSE_TYPE);
-      response.push(id);
-      response.push(error);
-      response.push(result);
-
+      var response = [RESPONSE_TYPE,id, error, result];
       stream.write(msgpack.pack(response));	
     });
   });
@@ -46,30 +42,27 @@ function RpcClient(host, port) {
 }
 
 RpcClient.prototype.invoke = function(method, params, callback) {
-  var conn = net.createConnection(this.port, this.host);
+  if (!this.conn) {
+    this.conn = net.createConnection(this.port, this.host);
+  }
   
-  conn.addListener('connect', function() {
-    var request = [];
+  var conn_ = this.conn;
+  
+  conn_.addListener('connect', function() {
     var id = new Date().getTime();
 
-    request.push(REQUEST_TYPE);
-    request.push(id);
-    request.push(method);
-    request.push(params);
-     
+    var request = [REQUEST_TYPE, id, method, params];
     var buffer = msgpack.pack(request);
-    conn.write(buffer);
+    conn_.write(buffer);
   });
 
-  conn.addListener('data', function (data) {
+  conn_.addListener('data', function (data) {
     var response = msgpack.unpack(data);
     var error = response[2];
-
     var result = response[3];
-    callback(result, null);
-    
-    conn.end();
-    conn.destroy();
+    callback(result, error);
+    conn_.end();
+    conn_.destroy();
   });
 };
 
