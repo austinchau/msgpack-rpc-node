@@ -20,11 +20,11 @@ function RpcServer(module) {
       try {
         result = module[method].apply(this, params);
       } catch(e) {
-        sys.log('Exception invokingi ' + method + ': ' + e);
+        sys.log('Exception invoking ' + method + ': ' + e);
         error = e;
       }
 
-      var response = [RESPONSE_TYPE,id, error, result];
+      var response = [RESPONSE_TYPE, id, error, result];
       stream.write(msgpack.pack(response));	
     });
   });
