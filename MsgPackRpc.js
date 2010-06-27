@@ -2,6 +2,9 @@ var sys = require('sys');
 var net = require('net');
 var msgpack = require('msgpack');
 
+const REQUEST_TYPE = 0;
+const RESPONSE_TYPE = 1;
+
 function RpcServer(module) {
   this.server = net.createServer(function(stream) {
     stream.addListener('data', function(data) {
@@ -10,12 +13,20 @@ function RpcServer(module) {
       var id = msg[1];
       var method = msg[2];
       var params = msg[msg.length - 1];
-      var result = module[method].apply(this, params);	
+      
+      var error = null;
+      var result = null;
+
+      try {
+        var result = module[method].apply(this, params);
+      } catch(e) {
+        error = e;
+      }
 
       var response = [];
-      response.push(1);
+      response.push(RESPONSE_TYPE);
       response.push(id);
-      response.push(null);
+      response.push(error);
       response.push(result);
 
       stream.write(msgpack.pack(response));	
@@ -41,9 +52,7 @@ RpcClient.prototype.invoke = function(method, params, callback) {
     var request = [];
     var id = new Date().getTime();
 
-    var type = 0; // Request type
-
-    request.push(type);
+    request.push(REQUEST_TYPE);
     request.push(id);
     request.push(method);
     request.push(params);
@@ -56,14 +65,8 @@ RpcClient.prototype.invoke = function(method, params, callback) {
     var response = msgpack.unpack(data);
     var error = response[2];
 
-    if (error != null) {
-      sys.puts('this call has incurred an error');
-      callback(null);
-      return;
-    }
-
     var result = response[3];
-    callback(result);
+    callback(result, null);
     
     conn.end();
     conn.destroy();
