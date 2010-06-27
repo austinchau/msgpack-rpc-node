@@ -28,7 +28,7 @@ function RpcServer(module) {
       stream.write(msgpack.pack(response));	
     });
   });
-};
+}
 
 RpcServer.prototype.start = function(port) {
   this.server.listen(port, function() {
@@ -61,10 +61,14 @@ RpcClient.prototype.invoke = function(method, params, callback) {
     var error = response[2];
     var result = response[3];
     callback(result, error);
-    conn_.end();
-    conn_.destroy();
   });
+};
+
+RpcClient.prototype.close = function() {
+  this.conn.end();
+  this.conn.destroy();
 };
 
 exports.RpcServer = RpcServer;
 exports.RpcClient = RpcClient;
+
