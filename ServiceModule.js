@@ -4,6 +4,10 @@ function isNum(input) {
   return typeof input == 'number';
 }
 
+exports.echo = function(str) {
+  return '[echo]' + str;
+};
+
 exports.substract = function(a,b) {
 	sys.log('substracting ' + a + ' - ' + b);
 

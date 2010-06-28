@@ -3,12 +3,19 @@ var RpcClient = require('./MsgPackRpc').RpcClient;
 
 var client = new RpcClient('localhost', 9999);
 
-client.invoke('substract', [10, 3], function(result, error) {
+var hugeStr = '';
+
+for (var i=0; i<100000; i++) {
+  hugeStr += 'a';
+}
+
+client.invoke('substract', [9, 3], function(result, error) {
   if (error) {
     sys.puts('[rpc error] ' + error);
   } else {
     sys.puts(result);
   }
-  
-  client.close();
+  client.invoke('echo', [hugeStr], function(result, error) {
+    sys.puts(result.length);
+  });
 });
