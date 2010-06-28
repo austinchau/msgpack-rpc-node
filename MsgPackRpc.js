@@ -7,7 +7,6 @@ const REQUEST_TYPE = 0;
 const RESPONSE_TYPE = 1;
 
 function RpcServer(module) {
-  
   var currentBuffer = null
   
   this.server = net.createServer(function(stream) {
@@ -25,6 +24,8 @@ function RpcServer(module) {
 
     stream.addListener('end', function() {
       var msg = msgpack.unpack(currentBuffer);
+      currentBuffer = null;
+
       var type = msg[0];
       var id = msg[1];
       var method = msg[2];
@@ -60,21 +61,17 @@ function RpcClient(host, port) {
 }
 
 RpcClient.prototype.invoke = function(method, params, callback) {
-  if (!this.conn) {
-    this.conn = net.createConnection(this.port, this.host);
-  }
-  
-  var conn_ = this.conn;
+  var conn = net.createConnection(this.port, this.host);
   var currentBuffer = null;
     
-  conn_.addListener('connect', function() {
+  conn.addListener('connect', function() {
     var id = new Date().getTime();
     var request = [REQUEST_TYPE, id, method, params];
-    conn_.write(msgpack.pack(request));
-    conn_.end();
+    conn.write(msgpack.pack(request));
+    conn.end();
   });
 
-  conn_.addListener('data', function (chunk) {
+  conn.addListener('data', function (chunk) {
     // append chunk to buffer
     if (currentBuffer == null) {
       currentBuffer = chunk; 
@@ -86,8 +83,10 @@ RpcClient.prototype.invoke = function(method, params, callback) {
     }
   });
 
-  conn_.addListener('end', function() {
+  conn.addListener('end', function() {
     var response = msgpack.unpack(currentBuffer);
+    currentBuffer = null;
+
     var error = response[2];
     var result = response[3];
     callback(result, error);
