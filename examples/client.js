@@ -1,5 +1,5 @@
 var sys = require('sys');
-var RpcClient = require('./MsgPackRpc').RpcClient;
+var RpcClient = require('../msgpackrpc').RpcClient;
 
 var client = new RpcClient('localhost', 9999);
 
