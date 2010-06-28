@@ -7,25 +7,9 @@ const REQUEST_TYPE = 0;
 const RESPONSE_TYPE = 1;
 
 function RpcServer(module) {
-  var currentBuffer = null
-  
   this.server = net.createServer(function(stream) {
     stream.addListener('data', function(chunk) {
-      // append chunk to buffer
-      if (currentBuffer == null) {
-        currentBuffer = chunk; 
-      } else {
-        var newBuffer = new Buffer(currentBuffer.length + chunk.length);
-        currentBuffer.copy(newBuffer, 0, 0, currentBuffer.length - 1);
-        chunk.copy(newBuffer, currentBuffer.length, 0, chunk.length - 1);
-        currentBuffer = newBuffer;
-      }
-    });
-
-    stream.addListener('end', function() {
-      var msg = msgpack.unpack(currentBuffer);
-      currentBuffer = null;
-
+      var msg = msgpack.unpack(chunk);
       var type = msg[0];
       var id = msg[1];
       var method = msg[2];
@@ -60,32 +44,24 @@ function RpcClient(host, port) {
   this.port = port;
 }
 
+function combineBuffer(b1, b2) {
+  var buffer = new Buffer(b1.length + b2.length);
+  b1.copy(buffer, 0, 0, b1.length - 1);
+  b2.copy(buffer, b1.length, 0, b2.length - 1);
+  return buffer;
+}
+
 RpcClient.prototype.invoke = function(method, params, callback) {
   var conn = net.createConnection(this.port, this.host);
-  var currentBuffer = null;
     
   conn.addListener('connect', function() {
     var id = new Date().getTime();
     var request = [REQUEST_TYPE, id, method, params];
     conn.write(msgpack.pack(request));
-    conn.end();
   });
 
   conn.addListener('data', function (chunk) {
-    // append chunk to buffer
-    if (currentBuffer == null) {
-      currentBuffer = chunk; 
-    } else {
-      var newBuffer = new Buffer(currentBuffer.length + chunk.length);
-      currentBuffer.copy(newBuffer, 0, 0, currentBuffer.length - 1);
-      chunk.copy(newBuffer, currentBuffer.length, 0, chunk.length - 1);
-      currentBuffer = newBuffer;
-    }
-  });
-
-  conn.addListener('end', function() {
-    var response = msgpack.unpack(currentBuffer);
-    currentBuffer = null;
+    var response = msgpack.unpack(chunk);
 
     var error = response[2];
     var result = response[3];
