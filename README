@@ -1,3 +1,5 @@
-Rough first draft of doing RPC in node.js using MessagePack serialization.
+Rough first draft of doing RPC in node.js using MessagePack serialization and
+compliant to the msgpack RPC spec -
+http://redmine.msgpack.org/projects/msgpack/wiki/RPCProtocolSpec
 
 You must install node-msgpack http://github.com/pgriess/node-msgpack and put it in your ~/.node_libraries before using this rpc library 

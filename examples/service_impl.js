@@ -9,8 +9,6 @@ exports.echo = function(str) {
 };
 
 exports.substract = function(a,b) {
-  sys.log('substracting ' + a + ' - ' + b);
-
   if (!isNum(a) || !isNum(b)) {
     throw('input must be a number');
   }
@@ -18,8 +16,6 @@ exports.substract = function(a,b) {
   return a - b;
 };
 exports.add = function(a,b) {
-  sys.log('adding ' + a + ' + ' + b);
-  
   if (!isNum(a) || !isNum(b)) {
     throw('input must be a number');
   }
