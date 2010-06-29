@@ -16,7 +16,11 @@ client.addListener('ready', function() {
     }
 
     client.invoke('echo', [str], function(result, error) {
-      sys.puts(result.length);
+      if (error) {
+        sys.puts('[rpc error] ' + error);
+      } else {
+        sys.puts(result.length);
+      }
       client.close();
     });
   });
