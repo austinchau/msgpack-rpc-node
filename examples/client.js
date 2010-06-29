@@ -11,7 +11,7 @@ client.addListener('ready', function() {
       sys.puts(result);
     }
     
-    for (var i=0, str=''; i < 100000; i++) {
+    for (var i=0, str=''; i < 1000; i++) {
       str += 'a';
     }
 
